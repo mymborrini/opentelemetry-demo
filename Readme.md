@@ -6,7 +6,10 @@
 
 ### Download the opentelemetry java agent 
 
-    curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.12.0/opentelemetry-javaagent.jar
+    curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.32.0/opentelemetry-javaagent.jar
+
+Using java agent opentelemetry version 2 does not work the same way but this is just a good example showing how observability can
+be implemented
 
 ### Run the jar file with the java agent
 
@@ -17,3 +20,8 @@ If you don't specify the options opentelemetry will continue raise exceptions be
 ## 2 PostgresSql -- Spring Boot + OpenTelemetry Java agent
 
 ![2.png](./images/2.png)
+
+
+## 3 OpenTelemetry (traces): Spring Boot 3 + OpenTelemetry Java Agent -- Zipkin
+
+![3.png](./images/3.png)

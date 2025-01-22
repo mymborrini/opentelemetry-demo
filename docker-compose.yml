@@ -6,14 +6,16 @@ services:
     ports:
       - "4000:8080"
     environment:
-      OTEL_TRACES_EXPORTER: "jaeger"
+      OTEL_TRACES_EXPORTER: "jaeger,zipkin"
       OTEL_EXPORTER_JAEGER_ENDPOINT: "http://jaeger:14250"
+      OTEL_EXPORTER_ZIPKIN_ENDPOINT: "http://zipkin:9411/api/v2/spans"
       OTEL_METRICS_EXPORTER: "logging"
       OTEL_LOGS_EXPORTER: "logging"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/opentelemetry"
     depends_on:
       - postgres
       - jaeger-all-in-one
+      - zipkin-all-in-one
 
   postgres:
     container_name: postgres
@@ -35,3 +37,10 @@ services:
     ports:
       - "4002:16686" # HTTP	query	serve frontend
       - "4003:14250" # HTTP	collector	accept model.proto
+
+  zipkin-all-in-one:
+    container_name: zipkin
+    image: openzipkin/zipkin:3.4
+    restart: always
+    ports:
+      - "4004:9411"
