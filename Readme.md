@@ -25,3 +25,15 @@ If you don't specify the options opentelemetry will continue raise exceptions be
 ## 3 OpenTelemetry (traces): Spring Boot 3 + OpenTelemetry Java Agent -- Zipkin
 
 ![3.png](./images/3.png)
+
+## 4 OpenTelemetry (metrics): Spring Boot 3 + OpenTelemetry Java Agent -- Prometheus -- Grafana
+
+![4.png](./images/4.png)
+
+Once you run grafana you have to log in
+ * username: admin
+ * password: admin
+
+Then it will ask you to change the password.
+
+Then you can import a grafana dashboard from a template for example **https://grafana.com/grafana/dashboards/18812-jvm-overview-opentelemetry/**

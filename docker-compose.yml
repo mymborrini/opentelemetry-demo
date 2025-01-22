@@ -9,7 +9,9 @@ services:
       OTEL_TRACES_EXPORTER: "jaeger,zipkin"
       OTEL_EXPORTER_JAEGER_ENDPOINT: "http://jaeger:14250"
       OTEL_EXPORTER_ZIPKIN_ENDPOINT: "http://zipkin:9411/api/v2/spans"
-      OTEL_METRICS_EXPORTER: "logging"
+      OTEL_METRICS_EXPORTER: "prometheus"
+      OTEL_EXPORTER_PROMETHEUS_PORT: "9464"
+      OTEL_EXPORTER_PROMETHEUS_HOST: "0.0.0.0"
       OTEL_LOGS_EXPORTER: "logging"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/opentelemetry"
     depends_on:
@@ -44,3 +46,26 @@ services:
     restart: always
     ports:
       - "4004:9411"
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v3.1.0
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    depends_on:
+      - order-service
+    ports:
+      - "4005:9090"
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    volumes:
+      - ./docker/grafana/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    restart: always
+    ports:
+      - "4006:3000"
+    depends_on:
+      - prometheus
