@@ -37,3 +37,10 @@ Once you run grafana you have to log in
 Then it will ask you to change the password.
 
 Then you can import a grafana dashboard from a template for example **https://grafana.com/grafana/dashboards/18812-jvm-overview-opentelemetry/**
+
+## 5 Spring Boot 3 + OpenTelemetry Java Agent — Otel Collector — Loki
+
+![5.png](./images/5.png)
+
+Java Opentelemtry agent does not support loki so we have to install an otel collector as well. Installing a Collector
+is also really important because it will fetch opentelemetry metrics for all applications.
