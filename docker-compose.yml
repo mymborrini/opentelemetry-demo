@@ -6,13 +6,8 @@ services:
     environment:
       OTEL_SERVICE_NAME: "order-service"
       OTEL_RESOURCE_ATTRIBUTES: "service=order-service,env=dev"
-      OTEL_TRACES_EXPORTER: "otlp"
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://collector:4317"
-      OTEL_METRICS_EXPORTER: "prometheus"
-      OTEL_EXPORTER_PROMETHEUS_PORT: "9464"
-      OTEL_EXPORTER_PROMETHEUS_HOST: "0.0.0.0"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://collector:4317"
       OTEL_LOGS_EXPORTER: "otlp"
-      OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: "http://collector:4317"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/opentelemetry"
     depends_on:
       - postgres
@@ -54,8 +49,9 @@ services:
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --enable-feature=exemplar-storage
+      - --web.enable-remote-write-receiver # To see the metrics from tempo (metrics_generator.storage.remote_write
     depends_on:
-      - order-service
+      - collector
     ports:
       - "4005:9090"
 
@@ -69,6 +65,10 @@ services:
       - "4006:3000"
     depends_on:
       - prometheus
+      - loki
+      - jaeger-all-in-one
+      - zipkin-all-in-one
+      - tempo
 
   collector:
     container_name: collector
@@ -80,6 +80,7 @@ services:
     restart: always
     ports:
       - "4317" # OTLP gRPC receiver
+      - "8889" # Prometheus exporter metrics
     depends_on:
       - loki
       - jaeger-all-in-one

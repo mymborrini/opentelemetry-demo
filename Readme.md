@@ -97,6 +97,7 @@ all together. This is the manual procedure to understand what is the goal. Of co
 
 ![7.png](./images/7.png)
 
+### 7 
 Placing the collector before. The 7th will involve the tracing and the 8th the metrics.
 This way we can take advantages of the otel collector retry batching...
 
@@ -115,4 +116,12 @@ After doing that we can map the tags, for example if we have set those attribute
 have something like this `"Tags": ["service.name": "job"]`. And now we have the same behaviour then in tempo, so we can see
 the logs from grafana loki related to that traceId.
 
-The exact same thoughts goes for zipkin
+The exact same thoughts goes for zipkin.
+
+### 8
+
+Once you put prometheus after the collector some name changes and you won't find **http_server_duration_milliseconds_bucket** anymore
+immediately because there is the batch from the collector. 
+
+If you enable Prometheus Remote Write as exporter in collector you don't need to enable scrape anymore. Collector will push everything
+automatically to prometheus

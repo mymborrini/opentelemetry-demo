@@ -20,6 +20,13 @@ exporters:
 #    endpoint: 'http://jaeger:14250'
 #    tls:
 #      insecure: true
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    enable_open_metrics: true
+
+  prometheusremotewrite:
+    endpoint: "http://prometheus:9090/api/v1/write"
+
   otlp/jaeger:
     endpoint: 'http://jaeger:4317'
     tls:
@@ -38,6 +45,10 @@ exporters:
 
 service:
   pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheusremotewrite]
     logs:
       receivers: [otlp]
       processors: [batch]
