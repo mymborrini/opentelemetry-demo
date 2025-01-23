@@ -91,3 +91,28 @@ So right now we have some metrics that are correlated with some traces. Let's se
 So in the end you can explore prometheus, query the  **http_server_duration_milliseconds_bucket** with exemplars.
 Each exemplars have a **Query with tempo** button and for each trace in Tempo you have the grafana loki logs. So we connect
 all together. This is the manual procedure to understand what is the goal. Of course we can configure it in the grafana datasource
+
+## 7. OpenTelemetry (traces): Spring Boot 3 + Java Agent — Otel Collector — Jaeger — Zipkin — Tempo
+## 8. OpenTelemetry (metrics): Spring Boot 3 + Java Agent — Collector — Prometheus Exemplars — Grafana
+
+![7.png](./images/7.png)
+
+Placing the collector before. The 7th will involve the tracing and the 8th the metrics.
+This way we can take advantages of the otel collector retry batching...
+
+Adding batching feature in collector is really important especially in production. The following is an example on how a collector
+can be fully configured
+
+[data_dog_exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/datadogexporter/examples/collector.yaml)
+
+In grafana now we could try to add jaeger as datasource, and we can do it, but then we cannot link it to grafana loki because
+we miss the tags part we make when configuring tempo `"Tags": ["service.name": "job"]`.
+
+So we need to **TAG** our traces. To do this in our opentelemetry agent we add OTEL_RESOURCE_ATTRIBUTES. For now we can limit
+our attributes to the service and the environment but in production they can be much more. 
+
+After doing that we can map the tags, for example if we have set those attributes `service=order-service,env=dev`; we can 
+have something like this `"Tags": ["service.name": "job"]`. And now we have the same behaviour then in tempo, so we can see
+the logs from grafana loki related to that traceId.
+
+The exact same thoughts goes for zipkin
