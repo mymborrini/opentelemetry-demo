@@ -1,4 +1,4 @@
-package demo.skynet.open_telemetry;
+package demo.skynet.order_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

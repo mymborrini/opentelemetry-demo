@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>demo.skynet</groupId>
-	<artifactId>open-telemetry</artifactId>
+	<artifactId>order_service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>open-telemetry</name>
+	<name>order_service</name>
 	<description>Demo project for Spring Boot integrated with opentelemetry</description>
 	<url/>
 	<licenses>

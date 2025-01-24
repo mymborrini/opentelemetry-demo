@@ -1,4 +1,4 @@
-package demo.skynet.open_telemetry.orders.entity;
+package demo.skynet.order_service.orders.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

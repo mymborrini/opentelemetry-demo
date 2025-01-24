@@ -1,16 +1,12 @@
-package demo.skynet.open_telemetry.orders.controller;
+package demo.skynet.order_service.orders.controller;
 
 
-import demo.skynet.open_telemetry.orders.entity.Order;
-import demo.skynet.open_telemetry.orders.repository.OrderRepository;
-import lombok.RequiredArgsConstructor;
+import demo.skynet.order_service.orders.entity.Order;
+import demo.skynet.order_service.orders.repository.OrderRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.math.BigDecimal;
-import java.time.ZonedDateTime;
 
 @RestController
 @RequestMapping("/orders")
