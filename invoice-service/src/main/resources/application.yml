@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: invoice-service
+
+server:
+  port: 8082
+
+otel:
+  exporter:
+    otlp:
+      protocol: grpc
+      endpoint: http://localhost:4007
+  resource:
+    attributes:
+      service.name: invoice-service
+      service: invoice-service
+      env: dev
+
+order:
+  service:
+    base-url: http://localhost:4000

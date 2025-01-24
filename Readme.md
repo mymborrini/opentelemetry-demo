@@ -125,3 +125,7 @@ immediately because there is the batch from the collector.
 
 If you enable Prometheus Remote Write as exporter in collector you don't need to enable scrape anymore. Collector will push everything
 automatically to prometheus
+
+## 9. OpenTelemetry x GraalVM Native Image: Automatically Instrument by Otel Spring Boot Starter
+
+![9.png](./images/9.png)
