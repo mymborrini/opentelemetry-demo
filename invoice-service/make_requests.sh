@@ -2,9 +2,9 @@
 
 # List of URLs to randomly choose from
 URLS=(
-"http://localhost:8082/invoices/1"
-"http://localhost:8082/invoices/2"
-"http://localhost:8082/invoices/3"
+"http://localhost:4008/invoices/1"
+"http://localhost:4008/invoices/2"
+"http://localhost:4008/invoices/3"
 )
 
 # Function to execute random curls

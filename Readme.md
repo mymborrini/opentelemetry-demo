@@ -129,3 +129,72 @@ automatically to prometheus
 ## 9. OpenTelemetry x GraalVM Native Image: Automatically Instrument by Otel Spring Boot Starter
 
 ![9.png](./images/9.png)
+
+## 10. OpenTelemetry x GraalVM Native Image: Native Compile and Build Native Docker Image (AMD, ARM)
+
+![10.png](./images/10.png)
+
+Native image for what it concerns me means that if it has been build on a amd architecture it cannot be run on an arm architecture and vice-versa.
+Remember graal vm is not directly aware of dynamic elements of your code and must be told about reflection, resource, serialization and dynamic proxies
+Since we have the plugin `org.graalvm.buildtools.native` I can run the command `mvn -Pnative native:compile` or in this case (gradle) `gradle nativeCompile`.
+So first we need to install sdkman by following this command
+
+    curl -s "https://get.sdkman.io" | bash
+    
+Now we can check on a list of java distribution
+
+    sdk list java
+
+Under liberica NIK (Native Image Kit) we can see this version **23.1.5.r21**. **23.1.5** is the GraalVM version and r21 means the java version 21.
+The identifier related to this version is **23.1.5.r21-nik**. So we can install it
+
+    sdk install java 23.1.5.r21-nik
+
+Now if you type 
+
+    java --version
+
+You should see something like this:
+    
+    openjdk 21.0.5 2024-10-15 LTS
+    OpenJDK Runtime Environment Liberica-NIK-23.1.5-1 (build 21.0.5+11-LTS)
+    OpenJDK 64-Bit Server VM Liberica-NIK-23.1.5-1 (build 21.0.5+11-LTS, mixed mode, sharing)
+
+And if you type 
+
+    native-image --version
+
+You should see something like this:
+
+    native-image 21.0.5 2024-10-15
+    GraalVM Runtime Environment Liberica-NIK-23.1.5-1 (build 21.0.5+11-LTS)
+    Substrate VM Liberica-NIK-23.1.5-1 (build 21.0.5+11-LTS, serial gc)
+
+This tool is really useful, you can install different versions of java and simply switch to one another by typing 
+
+    sdk use java <version>
+
+If you are using intellij you want to configure the java version in the project setting and in the gradle global settings. For the last 
+one it will probably used the project java version, so it should be already configured.
+
+    gradle clean nativeCompile
+
+If you are running on ubuntu probably you need to install gcc by executing
+
+    sudo apt install build-essentials zlib1g-dev
+
+Once the nativeCompile finished you can test by simply run the executable
+
+    ./.../invoice-service/build/native/nativeCompile/invoice-service
+
+When you make some request you may notice that you can have some problem with reflection and serialization 
+in build/resources/aot/META-INF/native-image/../reflect-config.json you can see more information. The RegisterReflectionForBinding
+annotation solve this problem. As you can see only Order.class is inserted. The reason is that all the class that are bean are 
+already computed and all the class that is returned by a restController like Invoice are already computed.
+
+Now that the compile has done, we need to create images. Remember to specify the builder in the build.gradle file.
+Remember that both the images and the executable can take some minutes to be ready.
+
+    gradle clean bootBuildImage
+
+At the end (in my case it takes 4 minutes) you should see something like this: `Successfully built image 'docker.io/library/invoice-service:0.0.1-SNAPSHOT'`

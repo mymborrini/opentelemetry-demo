@@ -1,14 +1,16 @@
 package demo.skynet.invoice_service;
 
+import demo.skynet.invoice_service.orders.entity.Order;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
+@RegisterReflectionForBinding({Order.class})
 public class InvoiceServiceApplication {
 
 	public static void main(String[] args) {
