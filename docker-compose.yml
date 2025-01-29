@@ -35,22 +35,6 @@ services:
     ports:
       - "4001:5432"
 
-  jaeger-all-in-one:
-    container_name: jaeger
-    environment:
-      COLLECTOR_OTLP_ENABLED: true
-    image: jaegertracing/all-in-one:1.35
-    restart: always
-    ports:
-      - "4002:16686" # HTTP	query	serve frontend
-      - "4317" # HTTP	collector	accept model.proto
-
-  zipkin-all-in-one:
-    container_name: zipkin
-    image: openzipkin/zipkin:3.4
-    restart: always
-    ports:
-      - "4004:9411"
 
   prometheus:
     container_name: prometheus
@@ -77,8 +61,6 @@ services:
     depends_on:
       - prometheus
       - loki
-      - jaeger-all-in-one
-      - zipkin-all-in-one
       - tempo
 
   collector:
@@ -94,8 +76,6 @@ services:
       - "8889" # Prometheus exporter metrics
     depends_on:
       - loki
-      - jaeger-all-in-one
-      - zipkin-all-in-one
       - tempo
 
   loki:
