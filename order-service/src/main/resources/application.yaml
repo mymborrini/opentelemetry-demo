@@ -21,3 +21,15 @@ spring:
       hibernate:
         format_sql: true
         default_schema: orders
+
+otel:
+  service:
+    name: order-service
+  resource:
+    attributes:
+      environment: local
+      name: order-service
+  exporter:
+    otlp:
+      endpoint: 'http://localhost:5002'
+
