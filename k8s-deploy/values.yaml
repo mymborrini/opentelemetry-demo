@@ -131,6 +131,34 @@ loki:
     port: 3100
     containerPort: 3100
 
+tempo:
+  enable: true
+  name: tempo
+
+  image:
+    repository: grafana/tempo
+    tag: 2.2.4
+
+  livenessProbe:
+  readinessProbe:
+
+  envVariables:
+
+  podAnnotations:
+  podLabels:
+  podSecurityContext:
+  securityContext:
+
+  service:
+    grpc:
+      type: ClusterIP
+      port: 4317
+      containerPort: 4317
+    grafanaDatasource:
+      type: ClusterIP
+      port: 3200
+      containerPort: 3200
+
 grafana:
   enable: true
   name: grafana

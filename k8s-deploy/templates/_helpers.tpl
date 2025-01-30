@@ -118,6 +118,36 @@ app.kubernetes.io/name: {{ include "k8s-deploy.loki.name" . }}
 
 
 {{/*
+Tempo
+*/}}
+{{- define "k8s-deploy.tempo.name" -}}
+{{- default .Chart.Name "tempo" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "k8s-deploy.tempo.grpc.endpoint" -}}
+{{- default .Chart.Name "tempo-grpc" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "k8s-deploy.tempo.grafanaDatasource.endpoint" -}}
+{{- default .Chart.Name "tempo-grafana-datasource" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "k8s-deploy.tempo.labels" -}}
+{{ include "k8s-deploy.common.labels" . }}
+{{ include "k8s-deploy.tempo.selectorLabels" . }}
+{{- end }}
+
+{{- define "k8s-deploy.tempo.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "k8s-deploy.tempo.name" . }}
+{{ include "k8s-deploy.common.selectorLabels" . }}
+{{- end }}
+
+{{- define "k8s-deploy.tempo.config" -}}
+{{- default .Chart.Name .Values.tempo.name "config" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+
+{{/*
 Grafana
 */}}
 {{- define "k8s-deploy.grafana.name" -}}

@@ -103,7 +103,7 @@ data:
 {{/*        endpoint: "http://{{ include "k8s-deploy.prometheus.name" . }}:{{ .Values.prometheus.service.port }}/api/v1/write"*/}}
 
       otlp/tempo:
-        endpoint: 'http://tempo:4317'
+        endpoint: "http://{{ include "k8s-deploy.tempo.grpc.endpoint" . }}:{{ .Values.tempo.service.grpc.port }}"
         tls:
           insecure: true
       loki:
@@ -119,10 +119,10 @@ data:
           receivers: [ otlp ]
           processors: [ batch ]
           exporters: [ loki ]
-{{/*        traces:*/}}
-{{/*          receivers: [ otlp ]*/}}
-{{/*          processors: [ batch ]*/}}
-{{/*          exporters: [ otlp/tempo ]*/}}
+        traces:
+          receivers: [ otlp ]
+          processors: [ batch ]
+          exporters: [ otlp/tempo ]
 kind: ConfigMap
 metadata:
   name: {{ include "k8s-deploy.collector.config" . }}

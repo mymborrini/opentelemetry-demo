@@ -92,9 +92,36 @@ data:
         orgId: 1
         url:  "http://{{ include "k8s-deploy.prometheus.name" . }}:{{ .Values.prometheus.service.port }}"
         basicAuth: false
+        isDefault: true
+        version: 1
+        editable: false
+        jsonData:
+          httpMethod: GET
+          exemplarTraceIdDestinations:
+            - datasourceUid: tempo
+              name: trace_id
+      - name: Tempo
+        type: tempo
+        access: proxy
+        orgId: 1
+        url: "http://{{ include "k8s-deploy.tempo.grafanaDatasource.endpoint" . }}:{{ .Values.tempo.service.grafanaDatasource.port }}"
+        basicAuth: false
         isDefault: false
         version: 1
         editable: false
+        apiVersion: 1
+        uid: tempo
+        jsonData:
+          httpMethod: GET
+          serviceMap:
+            datasourceUid: prometheus
+          tracesToLogsV2:
+            datasourceUid: loki
+            spanStartTimeShift: '-1h'
+            spanEndTimeShift: '1h'
+            filterByTraceID: true
+            filterBySpanID: true
+            tags: [ { key: 'service.name', value: 'job' } ]
 
 kind: ConfigMap
 metadata:
