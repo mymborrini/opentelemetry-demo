@@ -85,6 +85,16 @@ data:
         isDefault: false
         version: 1
         editable: false
+      - name: Prometheus
+        type: prometheus
+        uid: prometheus
+        access: proxy
+        orgId: 1
+        url:  "http://{{ include "k8s-deploy.prometheus.name" . }}:{{ .Values.prometheus.service.port }}"
+        basicAuth: false
+        isDefault: false
+        version: 1
+        editable: false
 
 kind: ConfigMap
 metadata:

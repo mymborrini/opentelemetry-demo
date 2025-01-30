@@ -77,8 +77,36 @@ collector:
   securityContext:
 
   service:
-    port: 4317
-    containerPort: 4317
+    grpc:
+      type: ClusterIP
+      port: 4317
+      containerPort: 4317
+    prometheus:
+      type: ClusterIP
+      port: 8889
+      containerPort: 8889
+
+prometheus:
+  enable: true
+  name: prometheus
+
+  image:
+    repository: prom/prometheus
+    tag: v3.1.0
+    pullPolicy:
+
+  livenessProbe:
+  readinessProbe:
+
+  podAnnotations:
+  podLabels:
+  podSecurityContext:
+  securityContext:
+
+  service:
+    type: ClusterIP
+    port: 9090
+    containerPort: 9090
 
 loki:
   enable: true

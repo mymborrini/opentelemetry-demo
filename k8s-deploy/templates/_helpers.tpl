@@ -52,6 +52,14 @@ Collector
 {{- default .Chart.Name "otel-collector" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
+{{- define "k8s-deploy.collector.grpc.endpoint" -}}
+{{- default .Chart.Name "otel-collector-grpc" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "k8s-deploy.collector.prometheus.endpoint" -}}
+{{- default .Chart.Name "otel-collector-prometheus" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
 {{- define "k8s-deploy.collector.labels" -}}
 {{ include "k8s-deploy.common.labels" . }}
 {{ include "k8s-deploy.collector.selectorLabels" . }}
@@ -64,6 +72,27 @@ app.kubernetes.io/name: {{ include "k8s-deploy.collector.name" . }}
 
 {{- define "k8s-deploy.collector.config" -}}
 {{- default .Chart.Name .Values.collector.name "config" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Prometheus
+*/}}
+{{- define "k8s-deploy.prometheus.name" -}}
+{{- default .Chart.Name "prometheus" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "k8s-deploy.prometheus.labels" -}}
+{{ include "k8s-deploy.common.labels" . }}
+{{ include "k8s-deploy.prometheus.selectorLabels" . }}
+{{- end }}
+
+{{- define "k8s-deploy.prometheus.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "k8s-deploy.prometheus.name" . }}
+{{ include "k8s-deploy.common.selectorLabels" . }}
+{{- end }}
+
+{{- define "k8s-deploy.prometheus.config" -}}
+{{- default .Chart.Name .Values.prometheus.name "config" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*

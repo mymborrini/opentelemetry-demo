@@ -1,0 +1,84 @@
+{{- if .Values.prometheus.enable -}}
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "k8s-deploy.prometheus.name" . }}
+  labels:
+    {{- include "k8s-deploy.prometheus.labels" . | nindent 4}}
+spec:
+  selector:
+    matchLabels:
+      {{ include "k8s-deploy.prometheus.selectorLabels" . | nindent 6}}
+  template:
+    metadata:
+      labels:
+         {{ include "k8s-deploy.prometheus.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "k8s-deploy.prometheus.name" . }}
+          image: "{{ .Values.prometheus.image.repository }}:{{ .Values.prometheus.image.tag }}"
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --enable-feature=exemplar-storage
+            - --web.enable-remote-write-receiver
+          ports:
+            - containerPort: {{ .Values.prometheus.service.containerPort }}
+              name: http
+          volumeMounts:
+            - mountPath: /etc/prometheus/prometheus.yml
+              name: prometheus-conf
+              subPath: prometheus.yml
+
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: prometheus-conf
+          configMap:
+            name: {{ include "k8s-deploy.prometheus.config" . }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "k8s-deploy.prometheus.name" . }}
+  labels:
+    {{- include "k8s-deploy.prometheus.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.prometheus.service.type }}
+  ports:
+    - port: {{ .Values.prometheus.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "k8s-deploy.prometheus.selectorLabels" . | nindent 4 }}
+  internalTrafficPolicy: Local
+
+
+---
+
+apiVersion: v1
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      scrape_timeout: 10s
+      evaluation_interval: 15s
+
+    scrape_configs:
+      - job_name: otel_collector
+        honor_timestamps: true
+        scrape_interval: 15s
+        scrape_timeout: 10s
+        metrics_path: /metrics
+        scheme: http
+        static_configs:
+          - targets:
+              - "{{ include "k8s-deploy.collector.prometheus.endpoint" . }}:{{ .Values.collector.service.prometheus.port }}"
+kind: ConfigMap
+metadata:
+  name: {{ include "k8s-deploy.prometheus.config" . }}
+
+{{- end }}

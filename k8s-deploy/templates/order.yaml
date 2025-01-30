@@ -74,7 +74,7 @@ metadata:
   name: {{ include "k8s-deploy.orders.backend.config" . }}
 data:
   SPRING_DATASOURCE_URL: "jdbc:postgresql://{{ include "k8s-deploy.postgres.backend.name" . }}:{{ .Values.postgres.service.port }}/opentelemetry"
-  OTEL_EXPORTER_OTLP_ENDPOINT: "http://{{ include "k8s-deploy.collector.name" . }}:{{ .Values.collector.service.port }}"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://{{ include "k8s-deploy.collector.grpc.endpoint" . }}:{{ .Values.collector.service.grpc.port }}"
   OTEL_SERVICE_NAME: "order-service"
   OTEL_RESOURCE_ATTRIBUTES: "service=order-service,env=dev"
   OTEL_LOGS_EXPORTER: "otlp"

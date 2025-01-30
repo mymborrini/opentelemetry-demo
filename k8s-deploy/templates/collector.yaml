@@ -22,8 +22,10 @@ spec:
           args:
             - --config=/etc/otelcol-contrib/otel-collector.yml
           ports:
-            - containerPort: {{ .Values.collector.service.containerPort }}
+            - containerPort: {{ .Values.collector.service.grpc.containerPort }}
               name: grpc
+            - containerPort: {{ .Values.collector.service.prometheus.containerPort }}
+              name: prometheus
           volumeMounts:
             - mountPath: /etc/otelcol-contrib/otel-collector.yml
               name:  otel-collector-conf
@@ -39,16 +41,35 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "k8s-deploy.collector.name" . }}
+  name: {{ include "k8s-deploy.collector.grpc.endpoint" . }}
   labels:
     {{- include "k8s-deploy.collector.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.postgres.service.type }}
+  type: {{ .Values.collector.service.grpc.type }}
   ports:
-    - port: {{ .Values.collector.service.port }}
+    - port: {{ .Values.collector.service.grpc.port }}
       targetPort: grpc
       protocol: TCP
       name: grpc
+  selector:
+    {{- include "k8s-deploy.collector.selectorLabels" . | nindent 4 }}
+  internalTrafficPolicy: Local
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "k8s-deploy.collector.prometheus.endpoint" . }}
+  labels:
+    {{- include "k8s-deploy.collector.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.collector.service.prometheus.type }}
+  ports:
+    - port: {{ .Values.collector.service.prometheus.port }}
+      targetPort: prometheus
+      protocol: TCP
+      name: prometheus
   selector:
     {{- include "k8s-deploy.collector.selectorLabels" . | nindent 4 }}
   internalTrafficPolicy: Local
@@ -72,17 +93,14 @@ data:
         send_batch_size: 100 # When the data in our buffer overpass the batch size it will be send
         timeout: 10s
 
-
-
     exporters:
-      # Deprecated
-      #  jaeger:
-      #    endpoint: 'http://jaeger:14250'
-      #    tls:
-      #      insecure: true
 
-      prometheusremotewrite:
-        endpoint: "http://prometheus:9090/api/v1/write"
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+        enable_open_metrics: true
+
+{{/*      prometheusremotewrite:*/}}
+{{/*        endpoint: "http://{{ include "k8s-deploy.prometheus.name" . }}:{{ .Values.prometheus.service.port }}/api/v1/write"*/}}
 
       otlp/tempo:
         endpoint: 'http://tempo:4317'
@@ -93,10 +111,10 @@ data:
 
     service:
       pipelines:
-{{/*        metrics:*/}}
-{{/*          receivers: [ otlp ]*/}}
-{{/*          processors: [ batch ]*/}}
-{{/*          exporters: [ prometheusremotewrite ]*/}}
+        metrics:
+          receivers: [ otlp ]
+          processors: [ batch ]
+          exporters: [ prometheus ]
         logs:
           receivers: [ otlp ]
           processors: [ batch ]
