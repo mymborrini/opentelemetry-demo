@@ -1,0 +1,83 @@
+{{- if .Values.orders.enable -}}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "k8s-deploy.orders.backend.name" . }}
+  labels:
+  {{- include "k8s-deploy.orders.backend.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "k8s-deploy.orders.backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.orders.backend.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "k8s-deploy.orders.backend.labels" . | nindent 8 }}
+        {{- with .Values.orders.backend.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "k8s-deploy.serviceAccountName" . }}
+      {{- with .Values.orders.backend.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "k8s-deploy.orders.backend.name" . }}
+          {{- with .Values.orders.backend.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.orders.backend.image.repository }}:{{ .Values.orders.backend.image.tag | default .Chart.AppVersion }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.orders.service.containerPort }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "k8s-deploy.orders.backend.config" . }}
+          env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "k8s-deploy.orders.backend.name" . }}
+  labels:
+    {{- include "k8s-deploy.orders.backend.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.orders.service.type }}
+  ports:
+    - port: {{ .Values.orders.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "k8s-deploy.orders.backend.selectorLabels" . | nindent 4 }}
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "k8s-deploy.orders.backend.config" . }}
+data:
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://{{ include "k8s-deploy.postgres.backend.name" . }}:{{ .Values.postgres.service.port }}/opentelemetry"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://{{ include "k8s-deploy.collector.name" . }}:{{ .Values.collector.service.port }}"
+  OTEL_SERVICE_NAME: "order-service"
+  OTEL_RESOURCE_ATTRIBUTES: "service=order-service,env=dev"
+  OTEL_LOGS_EXPORTER: "otlp"
+
+{{- end }}
+

@@ -1,0 +1,112 @@
+{{- if .Values.collector.enable -}}
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "k8s-deploy.collector.name" . }}
+  labels:
+    {{- include "k8s-deploy.collector.labels" . | nindent 4}}
+spec:
+  selector:
+    matchLabels:
+      {{ include "k8s-deploy.collector.selectorLabels" . | nindent 6}}
+  template:
+    metadata:
+      labels:
+         {{ include "k8s-deploy.collector.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "k8s-deploy.collector.name" . }}
+          image: "{{ .Values.collector.image.repository }}:{{ .Values.collector.image.tag }}"
+          args:
+            - --config=/etc/otelcol-contrib/otel-collector.yml
+          ports:
+            - containerPort: {{ .Values.collector.service.containerPort }}
+              name: grpc
+          volumeMounts:
+            - mountPath: /etc/otelcol-contrib/otel-collector.yml
+              name:  otel-collector-conf
+              subPath: otel-collector.yml
+
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: otel-collector-conf
+          configMap:
+            name: {{ include "k8s-deploy.collector.config" . }}
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "k8s-deploy.collector.name" . }}
+  labels:
+    {{- include "k8s-deploy.collector.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.postgres.service.type }}
+  ports:
+    - port: {{ .Values.collector.service.port }}
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+  selector:
+    {{- include "k8s-deploy.collector.selectorLabels" . | nindent 4 }}
+  internalTrafficPolicy: Local
+
+---
+
+apiVersion: v1
+data:
+  otel-collector.yml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+
+    processors:
+      batch:
+        # Batch before sending to reduce API usage
+        # Datadog APM Intake limit is 3.2MB. Let's make sure the batches do not
+        # go over that.
+        send_batch_max_size: 1000 # The upper limit of the batch size. This property ensures that larger batches are split into smaller units.
+        send_batch_size: 100 # When the data in our buffer overpass the batch size it will be send
+        timeout: 10s
+
+
+
+    exporters:
+      # Deprecated
+      #  jaeger:
+      #    endpoint: 'http://jaeger:14250'
+      #    tls:
+      #      insecure: true
+
+      prometheusremotewrite:
+        endpoint: "http://prometheus:9090/api/v1/write"
+
+      otlp/tempo:
+        endpoint: 'http://tempo:4317'
+        tls:
+          insecure: true
+      loki:
+        endpoint: "http://{{ include "k8s-deploy.loki.name" . }}:{{ .Values.loki.service.port }}/loki/api/v1/push"
+
+    service:
+      pipelines:
+{{/*        metrics:*/}}
+{{/*          receivers: [ otlp ]*/}}
+{{/*          processors: [ batch ]*/}}
+{{/*          exporters: [ prometheusremotewrite ]*/}}
+        logs:
+          receivers: [ otlp ]
+          processors: [ batch ]
+          exporters: [ loki ]
+{{/*        traces:*/}}
+{{/*          receivers: [ otlp ]*/}}
+{{/*          processors: [ batch ]*/}}
+{{/*          exporters: [ otlp/tempo ]*/}}
+kind: ConfigMap
+metadata:
+  name: {{ include "k8s-deploy.collector.config" . }}
+
+{{- end }}

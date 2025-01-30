@@ -1,0 +1,62 @@
+{{- if .Values.loki.enable -}}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "k8s-deploy.loki.name" . }}
+  labels:
+    {{- include "k8s-deploy.loki.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "k8s-deploy.loki.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.loki.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "k8s-deploy.loki.labels" . | nindent 8 }}
+        {{- with .Values.loki.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "k8s-deploy.serviceAccountName" . }}
+      {{- with .Values.loki.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "k8s-deploy.loki.name" . }}
+          {{- with .Values.loki.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.loki.image.repository }}:{{ .Values.loki.image.tag | default .Chart.AppVersion }}"
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.loki.service.containerPort }}
+              protocol: TCP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "k8s-deploy.loki.name" . }}
+  labels:
+    {{- include "k8s-deploy.loki.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.loki.service.type }}
+  ports:
+    - port: {{ .Values.loki.service.port }}
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+  selector:
+    {{- include "k8s-deploy.loki.selectorLabels" . | nindent 4 }}
+
+  {{- end }}

@@ -1,0 +1,93 @@
+{{- if .Values.grafana.enable -}}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "k8s-deploy.grafana.name" . }}
+  labels:
+    {{- include "k8s-deploy.grafana.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "k8s-deploy.grafana.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.grafana.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "k8s-deploy.grafana.labels" . | nindent 8 }}
+        {{- with .Values.grafana.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "k8s-deploy.serviceAccountName" . }}
+      {{- with .Values.grafana.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "k8s-deploy.grafana.name" . }}
+          {{- with .Values.grafana.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.grafana.image.repository }}:{{ .Values.grafana.image.tag | default .Chart.AppVersion }}"
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.grafana.service.containerPort }}
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /etc/grafana/provisioning/datasources/datasources.yml
+              name: grafana-datasource
+              subPath: datasources.yml
+      volumes:
+        - name: grafana-datasource
+          configMap:
+            name: {{ include "k8s-deploy.grafana.config" . }}
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "k8s-deploy.grafana.name" . }}
+  labels:
+    {{- include "k8s-deploy.grafana.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.grafana.service.type }}
+  ports:
+    - port: {{ .Values.grafana.service.port }}
+      targetPort: grpc
+      nodePort: {{ .Values.grafana.service.nodePort }}
+      protocol: TCP
+      name: grpc
+  selector:
+    {{- include "k8s-deploy.grafana.selectorLabels" . | nindent 4 }}
+
+
+---
+
+apiVersion: v1
+data:
+  datasources.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        uid: loki
+        access: proxy
+        orgId: 1
+        url: "http://{{ include "k8s-deploy.loki.name" . }}:{{ .Values.loki.service.port }}"
+        basicAuth: false
+        isDefault: false
+        version: 1
+        editable: false
+
+kind: ConfigMap
+metadata:
+  name: {{ include "k8s-deploy.grafana.config" . }}
+
+  {{- end }}

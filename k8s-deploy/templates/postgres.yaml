@@ -1,0 +1,76 @@
+{{- if .Values.postgres.enable -}}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "k8s-deploy.postgres.backend.name" . }}
+  labels:
+    {{- include "k8s-deploy.postgres.backend.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "k8s-deploy.postgres.backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.postgres.backend.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "k8s-deploy.postgres.backend.labels" . | nindent 8 }}
+        {{- with .Values.postgres.backend.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "k8s-deploy.serviceAccountName" . }}
+      {{- with .Values.postgres.backend.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "k8s-deploy.postgres.backend.name" . }}
+          {{- with .Values.postgres.backend.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.postgres.backend.image.repository }}:{{ .Values.postgres.backend.image.tag | default .Chart.AppVersion }}"
+          ports:
+            - name: postgres
+              containerPort: {{ .Values.postgres.service.containerPort }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "k8s-deploy.postgres.backend.config" . }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "k8s-deploy.postgres.backend.name" . }}
+  labels:
+    {{- include "k8s-deploy.postgres.backend.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.postgres.service.type }}
+  ports:
+    - port: {{ .Values.postgres.service.port }}
+      targetPort: postgres
+      protocol: TCP
+      name: postgres
+  selector:
+    {{- include "k8s-deploy.postgres.backend.selectorLabels" . | nindent 4 }}
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "k8s-deploy.postgres.backend.config" . }}
+data:
+  {{- range $key, $val := .Values.postgres.backend.envVariables }}
+    {{ $key }}: {{ $val | quote }}
+  {{- end }}
+
+{{- end }}

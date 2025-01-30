@@ -1,0 +1,134 @@
+orders:
+  enable: true
+  name: order
+  backend:
+
+    image:
+      repository: mborrini/open-telemetry-order-service
+      tag: v1.0
+
+    livenessProbe:
+    readinessProbe:
+
+
+    podAnnotations:
+    podLabels:
+    podSecurityContext:
+    securityContext:
+
+
+  service:
+    type: ClusterIP
+    port: 80
+    containerPort: 8080
+
+
+postgres:
+  enable: true
+  name: postgres
+
+  backend:
+
+    image:
+      repository: postgres
+      tag: latest
+      pullPolicy:
+
+    livenessProbe:
+    readinessProbe:
+
+    envVariables:
+      POSTGRES_DB: opentelemetry
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+
+    podAnnotations:
+    podLabels:
+    podSecurityContext:
+    securityContext:
+
+
+  service:
+    type: ClusterIP
+    port: 5432
+    containerPort: 5432
+
+
+collector:
+  enable: true
+  name: collector
+
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: 0.91.0
+    pullPolicy:
+
+  livenessProbe:
+  readinessProbe:
+
+  envVariables:
+    POSTGRES_DB: opentelemetry
+    POSTGRES_USER: username
+    POSTGRES_PASSWORD: password
+
+  podAnnotations:
+  podLabels:
+  podSecurityContext:
+  securityContext:
+
+  service:
+    port: 4317
+    containerPort: 4317
+
+loki:
+  enable: true
+  name: loki
+
+  image:
+    repository: grafana/loki
+    tag: 3.3.2
+
+  livenessProbe:
+  readinessProbe:
+
+  envVariables:
+
+  podAnnotations:
+  podLabels:
+  podSecurityContext:
+  securityContext:
+
+  service:
+    type: ClusterIP
+    port: 3100
+    containerPort: 3100
+
+grafana:
+  enable: true
+  name: grafana
+
+  image:
+    repository:  grafana/grafana
+    tag: 11.4.0
+
+  livenessProbe:
+  readinessProbe:
+
+  envVariables:
+
+  podAnnotations:
+  podLabels:
+  podSecurityContext:
+  securityContext:
+
+  service:
+    type: NodePort
+    port: 3000
+    nodePort: 32000
+    containerPort: 3000
+
+
+serviceAccount:
+  create: false
+  name:
+  annotations:
