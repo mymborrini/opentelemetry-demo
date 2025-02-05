@@ -2,12 +2,13 @@
 
 ---
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
   name: {{ include "k8s-deploy.prometheus.name" . }}
   labels:
     {{- include "k8s-deploy.prometheus.labels" . | nindent 4}}
 spec:
+  replicas: 1
   selector:
     matchLabels:
       {{ include "k8s-deploy.prometheus.selectorLabels" . | nindent 6}}
@@ -54,8 +55,6 @@ spec:
       name: http
   selector:
     {{- include "k8s-deploy.prometheus.selectorLabels" . | nindent 4 }}
-  internalTrafficPolicy: Local
-
 
 ---
 
@@ -67,16 +66,6 @@ data:
       scrape_timeout: 10s
       evaluation_interval: 15s
 
-    scrape_configs:
-      - job_name: otel_collector
-        honor_timestamps: true
-        scrape_interval: 15s
-        scrape_timeout: 10s
-        metrics_path: /metrics
-        scheme: http
-        static_configs:
-          - targets:
-              - "{{ include "k8s-deploy.collector.prometheus.endpoint" . }}:{{ .Values.collector.service.prometheus.port }}"
 kind: ConfigMap
 metadata:
   name: {{ include "k8s-deploy.prometheus.config" . }}

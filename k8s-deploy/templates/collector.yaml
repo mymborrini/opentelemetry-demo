@@ -95,12 +95,13 @@ data:
 
     exporters:
 
-      prometheus:
-        endpoint: "0.0.0.0:8889"
-        enable_open_metrics: true
+{{/*      prometheus:*/}}
+{{/*        endpoint: "0.0.0.0:8889"*/}}
+{{/*        enable_open_metrics: true*/}}
 
-{{/*      prometheusremotewrite:*/}}
-{{/*        endpoint: "http://{{ include "k8s-deploy.prometheus.name" . }}:{{ .Values.prometheus.service.port }}/api/v1/write"*/}}
+      prometheusremotewrite:
+        endpoint: "http://{{ include "k8s-deploy.prometheus.name" . }}:{{ .Values.prometheus.service.port }}/api/v1/write"
+
 
       otlp/tempo:
         endpoint: "http://{{ include "k8s-deploy.tempo.grpc.endpoint" . }}:{{ .Values.tempo.service.grpc.port }}"
@@ -114,7 +115,7 @@ data:
         metrics:
           receivers: [ otlp ]
           processors: [ batch ]
-          exporters: [ prometheus ]
+          exporters: [ prometheusremotewrite ]
         logs:
           receivers: [ otlp ]
           processors: [ batch ]
